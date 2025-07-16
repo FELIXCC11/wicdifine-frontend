@@ -8,7 +8,7 @@
     "dev:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --watch",
     "clean": "rm -rf .next",
     "prebuild": "npm run build:css",
-    "build": "next build",
+    "build": "npx next build",
     "dev": "next dev -p 3002",
     "start": "next start -p ${PORT:-3002}",
     "lint": "next lint"
