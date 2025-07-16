@@ -4,15 +4,14 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "build:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --minify",
-    "dev:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --watch",
-    "clean": "rm -rf .next",
-    "prebuild": "npm run build:css",
-    "build": "npx next build",
-    "dev": "next dev -p 3002",
-    "start": "next start -p ${PORT:-3002}",
-    "lint": "next lint"
-  },
+  "build:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --minify",
+  "dev:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --watch",
+  "clean": "rm -rf .next",
+  "dev": "next dev -p 3002",
+  "build": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --minify && npx next build",
+  "start": "next start -p ${PORT:-3002}",
+  "lint": "next lint"
+},
   "dependencies": {
     "@ai-sdk/openai": "^1.3.20",
     "@ai-sdk/react": "^1.2.9",
