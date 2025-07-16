@@ -4,8 +4,8 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "build:css": "tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --minify",
-    "dev:css": "tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --watch",
+    "build:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --minify",
+    "dev:css": "npx tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --watch",
     "clean": "if exist .next rd /s /q .next",
     "dev": "npm run clean && next dev -p 3002",
     "build": "npm run clean && npm run build:css && NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL next build",
