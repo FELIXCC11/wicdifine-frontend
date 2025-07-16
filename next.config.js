@@ -10,52 +10,47 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui', 'lucide-react'],
   },
 
-  // Webpack configuration 
   webpack: (config, { isServer }) => {
-    // Warning suppression
-    config.ignoreWarnings = [
-      { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/css-loader/ },
-      { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/postcss-loader/ },
-      { message: /Critical dependency/ }
-    ];
+  config.ignoreWarnings = [
+    { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/css-loader/ },
+    { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/postcss-loader/ },
+    { message: /Critical dependency/ }
+  ];
 
-    // Handle problematic modules
-    if (isServer) {
-      const originalExternals = config.externals;
-      
-      config.externals = [
-        ({ context, request }, callback) => {
-          // Force these packages to be processed as CommonJS
-          if (/^(axios|orderedmap|diff-match-patch|prosemirror-model)/.test(request)) {
-            return callback(null, `commonjs ${request}`);
-          }
-          
-          // Handle original externals
-          if (typeof originalExternals === 'function') {
-            return originalExternals({ context, request }, callback);
-          } else if (Array.isArray(originalExternals)) {
-            return callback();
-          }
-          
+  if (isServer) {
+    const originalExternals = config.externals;
+    config.externals = [
+      ({ context, request }, callback) => {
+        if (/^(axios|orderedmap|diff-match-patch|prosemirror-model)/.test(request)) {
+          return callback(null, `commonjs ${request}`);
+        }
+        if (typeof originalExternals === 'function') {
+          return originalExternals({ context, request }, callback);
+        } else if (Array.isArray(originalExternals)) {
           return callback();
-        },
-        ...(Array.isArray(originalExternals) ? originalExternals : [])
-      ];
-    }
+        }
+        return callback();
+      },
+      ...(Array.isArray(originalExternals) ? originalExternals : [])
+    ];
+  }
 
-    // Add node polyfills
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-      path: false,
-      os: false,
-      crypto: false,
-    };
+  config.resolve.fallback = {
+    ...config.resolve.fallback,
+    fs: false,
+    net: false,
+    tls: false,
+    path: false,
+    os: false,
+    crypto: false
+  };
 
-    return config;
-  },
+  // ✅ ADD THIS LINE
+  config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+
+  return config;
+},
+
 
   
   async rewrites() {
