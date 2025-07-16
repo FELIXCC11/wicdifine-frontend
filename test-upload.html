@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WICFIN Document Upload Test</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; }
+    .drop-area { border: 2px dashed #ccc; padding: 2rem; text-align: center; margin: 1rem 0; }
+    .drop-area.active { border-color: blue; background: rgba(0,0,255,0.05); }
+    .button { background: #0070f3; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .log { background: #f1f1f1; padding: 1rem; max-height: 200px; overflow: auto; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>WICFIN Document Upload Test</h1>
+  
+  <div class="drop-area" id="dropArea">
+    <p>Drag files here or</p>
+    <input type="file" id="fileInput">
+    <button class="button" id="uploadButton">Upload File</button>
+  </div>
+  
+  <div class="log" id="log"></div>
+  
+  <script>
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const log = document.getElementById('log');
+    
+    // Log function
+    function addLog(message) {
+      const entry = document.createElement('div');
+      entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+      log.prepend(entry);
+    }
+    
+    // Prevent defaults for drag events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Highlight drop area when dragging over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+      dropArea.classList.add('active');
+    }
+    
+    function unhighlight() {
+      dropArea.classList.remove('active');
+    }
+    
+    // Handle file drops
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      
+      handleFiles(files);
+    }
+    
+    // Handle file selection
+    uploadButton.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', () => {
+      handleFiles(fileInput.files);
+    });
+    
+    function handleFiles(files) {
+      if (files.length > 0) {
+        uploadFile(files[0]);
+      }
+    }
+    
+    async function uploadFile(file) {
+      addLog(`Starting upload of ${file.name}...`);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('documentType', 'general');
+      
+      try {
+        const response = await fetch('/chat/api/document', {
+          method: 'POST',
+          body: formData
+        });
+        
+        addLog(`Response status: ${response.status}`);
+        
+        const data = await response.json();
+        addLog(`Response data: ${JSON.stringify(data)}`);
+        
+        if (response.ok) {
+          addLog(`✅ Upload successful!`);
+        } else {
+          addLog(`❌ Upload failed: ${data.error || 'Unknown error'}`);
+        }
+      } catch (error) {
+        addLog(`❌ Error: ${error.message}`);
+      }
+    }
+  </script>
+</body>
+</html>
