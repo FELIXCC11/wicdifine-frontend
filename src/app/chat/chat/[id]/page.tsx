@@ -39,33 +39,27 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     id,
   });
 
-  // Convert DB messages to the simplified format
-  function convertToSimplifiedMessages(messages: Array<Message>): Array<SimplifiedMessage> {
-    return messages.map((message) => {
-      const simplifiedMessage: SimplifiedMessage = {
-        id: message.id,
-        role: message.role as 'user' | 'assistant',
-        content: '',
-      };
-      
-      if (message.parts && Array.isArray(message.parts)) {
-        simplifiedMessage.content = message.parts.map(part => 
-          typeof part === 'string' ? part : JSON.stringify(part)
-        ).join('');
-      }
-      
-      if (message.createdAt) {
-        simplifiedMessage.createdAt = message.createdAt;
-      }
-      
-      return simplifiedMessage;
-    });
-  }
-
-  return (
-    <SimplifiedChat
-      id={chat.id}
-      initialMessages={convertToSimplifiedMessages(messagesFromDb)}
-    />
-  );
-}
+  // Convert DB messages to the format expected by SimplifiedChat
+function convertToSimplifiedMessages(messages: Array<Message>): Array<any> {
+  return messages.map((message) => {
+    const convertedMessage = {
+      id: message.id,
+      role: message.role as 'user' | 'assistant',
+      createdAt: message.createdAt,
+      parts: [
+        {
+          type: 'text',
+          text: ''
+        }
+      ]
+    };
+    
+    if (message.parts && Array.isArray(message.parts)) {
+      convertedMessage.parts[0].text = message.parts.map(part => 
+        typeof part === 'string' ? part : JSON.stringify(part)
+      ).join('');
+    }
+    
+    return convertedMessage;
+  });
+}}
