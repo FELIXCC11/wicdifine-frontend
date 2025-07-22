@@ -3,7 +3,6 @@ const path = require('path');
 
 const nextConfig = {
   
-  
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082',
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'WICFIN',
@@ -13,12 +12,10 @@ const nextConfig = {
     PYTHON_BACKEND_URL: process.env.PYTHON_BACKEND_URL || 'http://localhost:8082',
   },
   
-  
   poweredByHeader: false,
   generateEtags: false,
   reactStrictMode: true,
   
-  // Experimental settings (PRESERVED)
   experimental: {
     esmExternals: true,
     serverComponentsExternalPackages: ['@prisma/client', 'bcrypt'],
@@ -26,43 +23,12 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui', 'lucide-react'],
   },
 
-  // Webpack configuration (OPTIMIZED FOR BUNDLE SIZE)
   webpack: (config, { isServer }) => {
     config.ignoreWarnings = [
       { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/css-loader/ },
       { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/postcss-loader/ },
       { message: /Critical dependency/ }
     ];
-
-    // Bundle size optimization
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        chunks: 'all',
-        minSize: 20000,
-        maxSize: 244000,
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: 10,
-            enforce: true,
-          },
-          ai: {
-            test: /[\\/]node_modules[\\/](@ai-sdk|openai|ai)[\\/]/,
-            name: 'ai-libs',
-            priority: 20,
-            enforce: true,
-          },
-          editor: {
-            test: /[\\/]node_modules[\\/](codemirror|prosemirror|@codemirror)[\\/]/,
-            name: 'editor-libs',
-            priority: 20,
-            enforce: true,
-          },
-        },
-      },
-    };
 
     if (isServer) {
       const originalExternals = config.externals;
@@ -92,20 +58,11 @@ const nextConfig = {
       crypto: false
     };
 
-    
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
 
     return config;
   },
 
-  // Modular imports for tree shaking
-  modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
-    },
-  },
-
-  
   images: {
     remotePatterns: [
       {
@@ -120,7 +77,6 @@ const nextConfig = {
     unoptimized: true,
   },
   
-  // API rewrites (PRESERVED + ENHANCED with safer fallbacks)
   async rewrites() {
     const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8082';
     
@@ -152,7 +108,6 @@ const nextConfig = {
     ];
   },
 
-  // Security headers (PRESERVED)
   headers: async () => [
     {
       source: '/(.*)',
@@ -165,14 +120,12 @@ const nextConfig = {
     }
   ],
   
-  
   typescript: {
     ignoreBuildErrors: false,
   },
   eslint: {
     ignoreDuringBuilds: false,
   },
-  
   
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
