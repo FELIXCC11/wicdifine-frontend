@@ -26,13 +26,43 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui', 'lucide-react'],
   },
 
-  // Webpack configuration (PRESERVED + ENHANCED)
+  // Webpack configuration (OPTIMIZED FOR BUNDLE SIZE)
   webpack: (config, { isServer }) => {
     config.ignoreWarnings = [
       { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/css-loader/ },
       { module: /node_modules\/next\/dist\/build\/webpack\/loaders\/postcss-loader/ },
       { message: /Critical dependency/ }
     ];
+
+    // Bundle size optimization
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        minSize: 20000,
+        maxSize: 244000,
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            enforce: true,
+          },
+          ai: {
+            test: /[\\/]node_modules[\\/](@ai-sdk|openai|ai)[\\/]/,
+            name: 'ai-libs',
+            priority: 20,
+            enforce: true,
+          },
+          editor: {
+            test: /[\\/]node_modules[\\/](codemirror|prosemirror|@codemirror)[\\/]/,
+            name: 'editor-libs',
+            priority: 20,
+            enforce: true,
+          },
+        },
+      },
+    };
 
     if (isServer) {
       const originalExternals = config.externals;
@@ -66,6 +96,13 @@ const nextConfig = {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
 
     return config;
+  },
+
+  // Modular imports for tree shaking
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
   },
 
   
