@@ -353,7 +353,9 @@ function PureMultimodalInput({
             }}
             disabled={input.length === 0 || uploadQueue.length > 0 || status !== 'ready'}
           >
-            <ArrowUpIcon size={16} className="text-white md:w-[18px] md:h-[18px]" />
+            <span className="text-white md:w-[18px] md:h-[18px]">
+              <ArrowUpIcon size={16} />
+            </span>
           </Button>
         </div>
       </div>
