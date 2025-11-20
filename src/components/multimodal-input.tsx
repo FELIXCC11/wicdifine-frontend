@@ -312,7 +312,9 @@ function PureMultimodalInput({
             disabled={status !== 'ready'}
             variant="ghost"
           >
-            <PaperclipIcon size={16} className="md:w-[18px] md:h-[18px]" />
+            <span className="md:w-[18px] md:h-[18px] flex items-center justify-center">
+              <PaperclipIcon size={16} />
+            </span>
           </Button>
 
           {/* Search the web button */}
