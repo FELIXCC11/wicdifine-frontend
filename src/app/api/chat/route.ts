@@ -1,5 +1,9 @@
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, convertToCoreMessages } from 'ai';
+
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
 
 // Financial domain restriction system prompt
 const FINANCIAL_SYSTEM_PROMPT = `You are WICFIN, an advanced AI loan advisor and financial assistant specializing in helping users find the best loan options.
@@ -42,10 +46,8 @@ export async function POST(req: Request) {
 
     console.log('Processing chat request for chatId:', chatId);
 
-    // Use OpenAI GPT-4o (compatible with current zod version)
-    const model = openai('gpt-4o', {
-      apiKey: process.env.OPENAI_API_KEY || '',
-    });
+    // Use OpenAI GPT-4o
+    const model = openai('gpt-4o');
 
     // Convert messages to core format and add system prompt
     const coreMessages = convertToCoreMessages(messages || []);
