@@ -69,29 +69,35 @@ const nextConfig = {
 
   
   async rewrites() {
+    const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8082';
     return [
       {
         source: '/chat/api/document',
-        destination: process.env.PYTHON_BACKEND_URL || 'http://localhost:8082/api/document-upload'
+        destination: `${backendUrl}/api/document-upload`
       },
-
       {
         source: '/api/files/upload',
-        destination: process.env.PYTHON_BACKEND_URL || 'http://localhost:8082/api/document-upload'
+        destination: `${backendUrl}/api/document-upload`
       },
-
       {
-        source: '/api/chat',
-        destination: process.env.PYTHON_BACKEND_URL || 'http://localhost:8082/api/chat'
+        source: '/python-api/chat',
+        destination: `${backendUrl}/api/chat`
       },
-
       {
-        source: '/api/history',
-        destination: process.env.PYTHON_BACKEND_URL || 'http://localhost:8082/api/history'
+        source: '/python-api/history',
+        destination: `${backendUrl}/api/history`
+      },
+      {
+        source: '/python-api/loan-recommendation',
+        destination: `${backendUrl}/api/loan-recommendation`
+      },
+      {
+        source: '/python-api/estimate-rate',
+        destination: `${backendUrl}/api/estimate-rate`
       },
       {
         source: '/health',
-        destination: process.env.PYTHON_BACKEND_URL || 'http://localhost:8082/health'
+        destination: `${backendUrl}/health`
       }
     ];
   },
