@@ -3,6 +3,9 @@ import { auth } from '@/app/auth/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { getChatsByUserId } from '@/libs/db/queries';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Define types
 interface HistoryItem {
   id: string;
