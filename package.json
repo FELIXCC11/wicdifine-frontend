@@ -9,6 +9,7 @@
     "clean": "node -e \"const fs=require('fs');fs.rmSync('.next',{recursive:true,force:true});fs.rmSync('.turbo',{recursive:true,force:true});\"",
     "dev": "npm run clean && next dev -p 3002",
     "build": "npm run clean && npm run build:css && next build",
+    "postbuild": "node -e \"const fs=require('fs');fs.rmSync('.next/cache',{recursive:true,force:true});\"",
     "start": "next start -p ${PORT:-3002}",
     "lint": "next lint"
   },
