@@ -43,10 +43,15 @@ export const authConfig = {
         return true;
       }
 
-      // Protect chat, loan application, settings, profile, and wic verification pages
-      if (isOnChat || isOnLoanApplication || isOnWicVerification || isOnSettings || isOnProfile) {
+      // Protect loan application, settings, profile, and wic verification pages
+      if (isOnLoanApplication || isOnWicVerification || isOnSettings || isOnProfile) {
         if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
+        return false;
+      }
+
+      // Allow chat for guests
+      if (isOnChat) {
+        return true;
       }
 
       // For all other routes, require authentication by default

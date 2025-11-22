@@ -1,8 +1,9 @@
-// ⭐⭐⭐ UPDATED FILE - CHECK CONSOLE FOR "🚀 NEW CHAT.TSX" ⭐⭐⭐
 'use client';
 
 import type { Attachment, UIMessage } from 'ai';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/libs/db/schema';
@@ -53,14 +54,36 @@ export function Chat({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
-  console.log('🚀 NEW CHAT.TSX LOADED');
-  
+  const { data: session } = useSession();
+  const router = useRouter();
   const { mutate } = useSWRConfig();
   const [messages, setMessages] = useState<Array<UIMessage>>(initialMessages || []);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const [guestMessagesUsed, setGuestMessagesUsed] = useState(0);
+  const [showGuestLimit, setShowGuestLimit] = useState(false);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('wicdefin_guest_messages_used');
+      if (stored) {
+        setGuestMessagesUsed(parseInt(stored, 10) || 0);
+      }
+    }
+  }, []);
+
+  const incrementGuestMessages = () => {
+    const newCount = guestMessagesUsed + 1;
+    setGuestMessagesUsed(newCount);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wicdefin_guest_messages_used', newCount.toString());
+    }
+    if (newCount >= 1) {
+      setShowGuestLimit(true);
+    }
+  };
 
   const rawStatus = isLoading ? 'in_progress' : 'awaiting_message';
   const status = getCompatibleStatus(rawStatus);
@@ -71,16 +94,19 @@ export function Chat({
   );
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    console.log('📤 SUBMIT TRIGGERED');
     if (e) e.preventDefault();
 
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) {
-      console.log('⚠️ Skipping - no input or already loading');
       return;
     }
 
-    console.log('✅ Creating user message:', trimmedInput);
+    if (!session && guestMessagesUsed >= 1) {
+      toast.error('Please log in to continue chatting');
+      router.push('/auth/login');
+      return;
+    }
+
     const userMessage = toUIMessage({
       id: generateUUID(),
       role: 'user',
@@ -88,15 +114,12 @@ export function Chat({
       createdAt: new Date(),
     });
 
-    // Update messages state immediately with functional update
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput('');
     setIsLoading(true);
 
     try {
-      console.log('🌐 Calling Next.js API...');
-      console.log('📦 Sending chat history:', updatedMessages.length, 'messages');
 
       // Convert UIMessage format to API messages format
       const apiMessages = updatedMessages.map(msg => ({
@@ -145,7 +168,6 @@ export function Chat({
               assistantContent += text;
 
               if (!messageAdded) {
-                // Add assistant message on first chunk
                 const assistantMessage = toUIMessage({
                   id: assistantId,
                   role: 'assistant',
@@ -154,7 +176,6 @@ export function Chat({
                 });
                 setMessages((prev) => [...prev, assistantMessage]);
                 messageAdded = true;
-                console.log('📝 Started streaming assistant message:', assistantId);
               } else {
                 // Update message in real-time as chunks arrive
                 setMessages((prev) =>
@@ -176,19 +197,16 @@ export function Chat({
       }
 
       if (!assistantContent) {
-        console.error('❌ No assistant content! Empty response from API');
         throw new Error('No response received from API');
       }
 
-      console.log('✅ Streaming complete:', {
-        length: assistantContent.length,
-        preview: assistantContent.substring(0, 100) + '...'
-      });
+      if (!session) {
+        incrementGuestMessages();
+      }
 
       mutate(unstable_serialize(getChatHistoryPaginationKey));
 
     } catch (error) {
-      console.error('❌ Error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Failed to get response';
       toast.error(errorMsg);
 
@@ -203,7 +221,6 @@ export function Chat({
 
     } finally {
       setIsLoading(false);
-      console.log('✅ Loading complete');
     }
   };
 
@@ -216,10 +233,13 @@ export function Chat({
   };
 
   const append = async (message: UIMessage | any) => {
-    console.log('📤 APPEND TRIGGERED (suggestion clicked)');
-
     if (isLoading) {
-      console.log('⚠️ Already loading, skipping');
+      return null;
+    }
+
+    if (!session && guestMessagesUsed >= 1) {
+      toast.error('Please log in to continue chatting');
+      router.push('/auth/login');
       return null;
     }
 
@@ -227,18 +247,14 @@ export function Chat({
     const messageContent = userMessage.content || '';
 
     if (!messageContent.trim()) {
-      console.log('⚠️ Empty message, skipping');
       return null;
     }
 
-    // Update messages state immediately with functional update
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setIsLoading(true);
 
     try {
-      console.log('🌐 Calling Next.js API (from append)...');
-      console.log('📦 Sending chat history:', updatedMessages.length, 'messages');
 
       // Convert UIMessage format to API messages format
       const apiMessages = updatedMessages.map(msg => ({
@@ -287,7 +303,6 @@ export function Chat({
               assistantContent += text;
 
               if (!messageAdded) {
-                // Add assistant message on first chunk
                 const assistantMessage = toUIMessage({
                   id: assistantId,
                   role: 'assistant',
@@ -296,7 +311,6 @@ export function Chat({
                 });
                 setMessages((prev) => [...prev, assistantMessage]);
                 messageAdded = true;
-                console.log('📝 Started streaming assistant message (append):', assistantId);
               } else {
                 // Update message in real-time as chunks arrive
                 setMessages((prev) =>
@@ -321,11 +335,13 @@ export function Chat({
         throw new Error('No response received from API');
       }
 
-      console.log('✅ Streaming complete (append)');
+      if (!session) {
+        incrementGuestMessages();
+      }
+
       mutate(unstable_serialize(getChatHistoryPaginationKey));
 
     } catch (error) {
-      console.error('❌ Error in append:', error);
       const errorMsg = error instanceof Error ? error.message : 'Failed to get response';
       toast.error(errorMsg);
 
@@ -340,7 +356,6 @@ export function Chat({
 
     } finally {
       setIsLoading(false);
-      console.log('✅ Append complete');
     }
 
     return null;
@@ -440,11 +455,28 @@ export function Chat({
             </div>
           )}
 
+          {!session && showGuestLimit && (
+            <div className="w-full max-w-4xl mx-auto px-3 md:px-6 pb-3 md:pb-4">
+              <div className="bg-teal-500/10 border border-teal-500/50 rounded-xl p-6 text-center">
+                <h3 className="text-white font-semibold text-lg mb-2">Free Message Limit Reached</h3>
+                <p className="text-gray-300 mb-4">
+                  You've used your free message. Please log in to continue chatting and unlock unlimited messages.
+                </p>
+                <button
+                  onClick={() => router.push('/auth/login')}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Log In to Continue
+                </button>
+              </div>
+            </div>
+          )}
+
           <form
             className="flex mx-auto px-3 md:px-6 pb-3 md:pb-6 pt-3 md:pt-6 gap-2 w-full max-w-4xl"
             onSubmit={handleSubmit}
           >
-            {!isReadonly && (
+            {!isReadonly && (!showGuestLimit || session) && (
               <MultimodalInput
                 chatId={id}
                 input={input}

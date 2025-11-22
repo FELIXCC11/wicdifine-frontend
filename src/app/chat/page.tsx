@@ -10,10 +10,6 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 export default async function Page() {
   const session = await auth();
 
-  if (!session) {
-    redirect('/auth/login');
-  }
-
   const id = generateUUID();
 
   const cookieStore = await cookies();
