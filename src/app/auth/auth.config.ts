@@ -30,6 +30,8 @@ export const authConfig = {
       const isOnLogin = nextUrl.pathname.startsWith('/auth/login');
       const isOnAuth = nextUrl.pathname.startsWith('/auth');
       const isOnWicVerification = nextUrl.pathname.startsWith('/wic-verification');
+      const isOnSettings = nextUrl.pathname.startsWith('/settings');
+      const isOnProfile = nextUrl.pathname.startsWith('/profile');
 
       // Always redirect to home if logged in and trying to access auth pages
       if (isLoggedIn && (isOnLogin || isOnRegister)) {
@@ -41,13 +43,14 @@ export const authConfig = {
         return true;
       }
 
-      // Protect chat and loan application pages
-      if (isOnChat || isOnLoanApplication || isOnWicVerification) {
+      // Protect chat, loan application, settings, profile, and wic verification pages
+      if (isOnChat || isOnLoanApplication || isOnWicVerification || isOnSettings || isOnProfile) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       }
 
-      return true;
+      // For all other routes, require authentication by default
+      return isLoggedIn;
     },
     jwt({ token, user, account }: { token: any; user: any; account: any }) {
       // Add WICFIN tokens to the session

@@ -133,7 +133,7 @@ function PureChatHeader({
                 </div>
 
                 {/* Button text */}
-                <span className="text-xs md:text-sm font-medium text-white relative z-10 whitespace-nowrap hidden sm:inline">Deploy with WICDEFIN</span>
+                <span className="text-xs md:text-sm font-medium text-white relative z-10 whitespace-nowrap hidden sm:inline">Deploy with WICCHAIN</span>
                 <span className="text-xs font-medium text-white relative z-10 sm:hidden">Deploy</span>
               </button>
             </div>

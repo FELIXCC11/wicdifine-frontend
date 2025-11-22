@@ -42,7 +42,11 @@ export async function PATCH(request: Request) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    const { chatId, messageId, isUpvoted } = await request.json();
+    const { chatId, messageId, isUpvoted } = await request.json() as {
+      chatId: string;
+      messageId: string;
+      isUpvoted: boolean;
+    };
 
     if (!chatId || !messageId) {
       return new Response('chatId and messageId are required', { status: 400 });
@@ -61,7 +65,7 @@ export async function PATCH(request: Request) {
     await voteMessage({
       chatId,
       messageId,
-      isUpvoted,
+      type: isUpvoted ? 'up' : 'down',
     });
 
     return new Response('Message voted', { status: 200 });

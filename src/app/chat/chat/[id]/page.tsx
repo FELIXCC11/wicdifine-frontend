@@ -9,8 +9,6 @@ import { getChatById, getMessagesByChatId } from '@/libs/db/queries';
 import { Message } from '@/libs/db/schema';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
-  console.log('✅ USING NEW PAGE.TSX');
-  
   const params = await props.params;
   const { id } = params;
   const chat = await getChatById({ id });

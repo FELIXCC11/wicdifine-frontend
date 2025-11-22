@@ -181,12 +181,9 @@ export default function Page() {
           </AuthForm>
 
           <p className="text-center text-sm text-gray-400 mt-6">
-            {"Already have an account? "}
-            <Link
-              href={"/auth/register" as Route}
-              className="font-semibold text-emerald-500 hover:text-emerald-400 hover:underline"
-            >
-              Log in
+            Don&apos;t have an account?{' '}
+            <Link href="/auth/register" className="font-medium text-primary hover:underline">
+            Sign up
             </Link>
           </p>
         </div>

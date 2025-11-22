@@ -54,7 +54,6 @@ export default function HistoryPage() {
         setChats([]);
       }
     } catch (err) {
-      console.error('Error fetching chat history:', err);
       setError('Failed to load chat history');
     } finally {
       setLoading(false);
