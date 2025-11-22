@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/libs/auth/auth-provider';
 import { inter, jetbrainsMono } from '@/libs/fonts';
 import ErrorBoundary from '@/components/error-boundary';
+import { ConsoleBanner } from '@/components/console-banner';
 import Script from 'next/script';
 import './globals.css';
 
@@ -31,6 +32,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <ConsoleBanner />
         <ErrorBoundary>
           <AuthProvider>
             <ThemeProvider
@@ -39,9 +41,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-             
+
                 {children}
-              
+
               <Toaster />
             </ThemeProvider>
           </AuthProvider>

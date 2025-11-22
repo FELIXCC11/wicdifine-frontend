@@ -20,6 +20,7 @@ export const {
   signOut,
 } = NextAuth({
   ...authConfig,
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -66,7 +67,6 @@ export const {
 
           return true;
         } catch (error) {
-          console.error('Error in Google OAuth sign-in:', error);
           return false;
         }
       }

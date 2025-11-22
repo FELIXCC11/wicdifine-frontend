@@ -54,7 +54,6 @@ export default function Page() {
       setIsGoogleLoading(true);
       await signIn('google', { callbackUrl: '/' });
     } catch (error) {
-      console.error('Google sign-in error:', error);
       toast({
         type: 'error',
         description: 'Failed to sign in with Google',

@@ -68,8 +68,6 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const startingAfter = searchParams.get('starting_after');
     const endingBefore = searchParams.get('ending_before');
-    
-    console.log(`History request received: limit=${limit}`);
 
     // If we have a logged-in user, use the database history
     if (session?.user?.id) {
@@ -91,7 +89,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(chats);
       } catch (error) {
-        console.error("Error fetching chats from database:", error);
         return NextResponse.json({ error: 'Failed to fetch chats!' }, { status: 500 });
       }
     }
@@ -102,7 +99,6 @@ export async function GET(request: NextRequest) {
       hasMore: false
     });
   } catch (error) {
-    console.error("Error in history endpoint:", error);
     // Return empty history to prevent UI errors
     return NextResponse.json({
       chats: [],

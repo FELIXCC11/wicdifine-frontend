@@ -67,7 +67,9 @@ const nextConfig = {
     return config;
   },
 
-  
+
+  // Optional: Python backend rewrites (only used if PYTHON_BACKEND_URL is set)
+  // Most functionality is handled by Next.js API routes
   async rewrites() {
     const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8082';
     return [

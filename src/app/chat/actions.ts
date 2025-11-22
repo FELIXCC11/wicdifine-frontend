@@ -48,7 +48,6 @@ export async function generateTitleFromUserMessage({
             content = String(message.content);
           }
         } catch (err) {
-          console.error("Error processing message content:", err);
           content = String(message.content || '');
         }
       }
@@ -56,30 +55,27 @@ export async function generateTitleFromUserMessage({
     
     // Try to get a title from the Python backend
     try {
-      console.log("Requesting title generation from Python backend");
       const response = await fetch('http://localhost:8082/api/analyze-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           text: content,
           mode: 'title_generation'
         }),
         signal: AbortSignal.timeout(5000)
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.analysis && data.analysis.title) {
-          console.log("Generated title:", data.analysis.title);
           return data.analysis.title;
         }
       }
     } catch (error) {
-      console.error("Error generating title from backend:", error);
+      // Silently fallback to simple algorithm
     }
-    
+
     // Fallback to a simple algorithm
-    console.log("Using fallback title generation");
     const words = content.split(/\s+/).filter(w => w.length > 2);
     let title = words.slice(0, 5).join(' ');
     
@@ -92,10 +88,10 @@ export async function generateTitleFromUserMessage({
     if (!title.trim()) {
       title = "New Chat";
     }
-    
+
+
     return title;
   } catch (error) {
-    console.error("Error generating title:", error);
     return "New Chat";
   }
 }
@@ -103,7 +99,7 @@ export async function generateTitleFromUserMessage({
 export async function deleteTrailingMessages({ id }: { id: string }) {
   try {
     const message = await getMessageById({ id });
-    
+
     if (message && message.length > 0 && message[0].chatId) {
       await deleteMessagesByChatIdAfterTimestamp({
         chatId: message[0].chatId,
@@ -111,7 +107,7 @@ export async function deleteTrailingMessages({ id }: { id: string }) {
       });
     }
   } catch (error) {
-    console.error("Error deleting trailing messages:", error);
+    // Silently handle error
   }
 }
 
@@ -124,16 +120,16 @@ export async function updateChatVisibility({
 }) {
   try {
     // Explicitly map visibility to 'private' or 'public'
-    const safeVisibility: 'private' | 'public' = 
-      visibility === 'unlisted' || visibility === 'private' 
-        ? 'private' 
+    const safeVisibility: 'private' | 'public' =
+      visibility === 'unlisted' || visibility === 'private'
+        ? 'private'
         : 'public';
-    
-    await updateChatVisiblityById({ 
-      chatId, 
-      visibility: safeVisibility 
+
+    await updateChatVisiblityById({
+      chatId,
+      visibility: safeVisibility
     });
   } catch (error) {
-    console.error("Error updating chat visibility:", error);
+    // Silently handle error
   }
 }

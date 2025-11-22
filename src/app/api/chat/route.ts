@@ -44,15 +44,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { messages, chatId } = body;
 
-    console.log('Processing chat request for chatId:', chatId);
-
-    // Use OpenAI GPT-4o
     const model = openai('gpt-4o');
-
-    // Convert messages to core format and add system prompt
     const coreMessages = convertToCoreMessages(messages || []);
 
-    // Stream the AI response
     const result = streamText({
       model,
       system: FINANCIAL_SYSTEM_PROMPT,
@@ -61,10 +55,8 @@ export async function POST(req: Request) {
       temperature: 0.7,
     });
 
-    // Return streaming response
     return result.toDataStreamResponse();
   } catch (error) {
-    console.error('Error in chat API route:', error);
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : 'Internal server error',

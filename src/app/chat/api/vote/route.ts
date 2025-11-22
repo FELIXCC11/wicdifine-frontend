@@ -11,13 +11,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    // For demo purposes, return empty array to prevent errors
-    return NextResponse.json([], { status: 200 });
-    
-    // Uncomment below for production use
-    /*
     const session = await auth();
-    
+
     if (!session || !session.user || !session.user.email) {
       return new Response('Unauthorized', { status: 401 });
     }
@@ -34,20 +29,47 @@ export async function GET(request: Request) {
 
     const votes = await getVotesByChatId({ id: chatId });
     return NextResponse.json(votes, { status: 200 });
-    */
   } catch (error) {
-    console.error("Error processing vote request:", error);
-    // Return empty array to prevent frontend errors
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json({ error: 'Failed to get votes' }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request) {
-  // For demo, always return success
-  return new Response('Message voted', { status: 200 });
+  try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const { chatId, messageId, isUpvoted } = await request.json();
+
+    if (!chatId || !messageId) {
+      return new Response('chatId and messageId are required', { status: 400 });
+    }
+
+    const chat = await getChatById({ id: chatId });
+
+    if (!chat) {
+      return new Response('Chat not found', { status: 404 });
+    }
+
+    if (chat.userId !== session.user.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    await voteMessage({
+      chatId,
+      messageId,
+      isUpvoted,
+    });
+
+    return new Response('Message voted', { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to vote message' }, { status: 500 });
+  }
 }
 
-// Add POST method for compatibility
 export async function POST(request: Request) {
   return PATCH(request);
 }
