@@ -1,5 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, convertToCoreMessages } from 'ai';
+import { cookies } from 'next/headers';
+import { auth } from '@/app/auth/auth';
 
 const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -41,6 +43,26 @@ Remember: You are a loan specialist. Stay focused on helping users with their fi
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    const cookieStore = await cookies();
+
+    if (!session) {
+      const usedFreeMessage = cookieStore.get('wicfin_free_message_used');
+
+      if (usedFreeMessage?.value === 'true') {
+        return new Response(
+          JSON.stringify({
+            error: 'login_required',
+            message: 'Please log in to continue chatting after your first message.',
+          }),
+          {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
+
     const body = await req.json();
     const { messages, chatId } = body;
 
@@ -55,7 +77,24 @@ export async function POST(req: Request) {
       temperature: 0.7,
     });
 
-    return result.toDataStreamResponse();
+    const response = result.toDataStreamResponse();
+
+    if (!session) {
+      const headers = new Headers(response.headers);
+      const isProduction = process.env.NODE_ENV === 'production';
+      const secureCookie = isProduction ? '; Secure' : '';
+      headers.append(
+        'Set-Cookie',
+        `wicfin_free_message_used=true; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly${secureCookie}`
+      );
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers
+      });
+    }
+
+    return response;
   } catch (error) {
     return new Response(
       JSON.stringify({

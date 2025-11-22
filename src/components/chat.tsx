@@ -61,29 +61,7 @@ export function Chat({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const [guestMessagesUsed, setGuestMessagesUsed] = useState(0);
-  const [showGuestLimit, setShowGuestLimit] = useState(false);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('wicdefin_guest_messages_used');
-      if (stored) {
-        setGuestMessagesUsed(parseInt(stored, 10) || 0);
-      }
-    }
-  }, []);
-
-  const incrementGuestMessages = () => {
-    const newCount = guestMessagesUsed + 1;
-    setGuestMessagesUsed(newCount);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wicdefin_guest_messages_used', newCount.toString());
-    }
-    if (newCount >= 1) {
-      setShowGuestLimit(true);
-    }
-  };
 
   const rawStatus = isLoading ? 'in_progress' : 'awaiting_message';
   const status = getCompatibleStatus(rawStatus);
@@ -101,12 +79,6 @@ export function Chat({
       return;
     }
 
-    if (!session && guestMessagesUsed >= 1) {
-      toast.error('Please log in to continue chatting');
-      router.push('/auth/login');
-      return;
-    }
-
     const userMessage = toUIMessage({
       id: generateUUID(),
       role: 'user',
@@ -120,8 +92,6 @@ export function Chat({
     setIsLoading(true);
 
     try {
-
-      // Convert UIMessage format to API messages format
       const apiMessages = updatedMessages.map(msg => ({
         role: msg.role,
         content: msg.content || (msg.parts?.[0] as any)?.text || '',
@@ -139,6 +109,18 @@ export function Chat({
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          try {
+            const errorData = await response.json();
+            if (errorData.error === 'login_required') {
+              toast.error('Please log in to continue chatting');
+              router.push('/auth/login');
+              return;
+            }
+          } catch {
+            throw new Error('Failed to get response');
+          }
+        }
         const error = await response.text();
         throw new Error(error || 'Failed to get response');
       }
@@ -198,10 +180,6 @@ export function Chat({
 
       if (!assistantContent) {
         throw new Error('No response received from API');
-      }
-
-      if (!session) {
-        incrementGuestMessages();
       }
 
       mutate(unstable_serialize(getChatHistoryPaginationKey));
@@ -237,12 +215,6 @@ export function Chat({
       return null;
     }
 
-    if (!session && guestMessagesUsed >= 1) {
-      toast.error('Please log in to continue chatting');
-      router.push('/auth/login');
-      return null;
-    }
-
     const userMessage = message.parts ? message : toUIMessage(message as any);
     const messageContent = userMessage.content || '';
 
@@ -255,8 +227,6 @@ export function Chat({
     setIsLoading(true);
 
     try {
-
-      // Convert UIMessage format to API messages format
       const apiMessages = updatedMessages.map(msg => ({
         role: msg.role,
         content: msg.content || (msg.parts?.[0] as any)?.text || '',
@@ -274,6 +244,18 @@ export function Chat({
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          try {
+            const errorData = await response.json();
+            if (errorData.error === 'login_required') {
+              toast.error('Please log in to continue chatting');
+              router.push('/auth/login');
+              return null;
+            }
+          } catch {
+            throw new Error('Failed to get response');
+          }
+        }
         const error = await response.text();
         throw new Error(error || 'Failed to get response');
       }
@@ -333,10 +315,6 @@ export function Chat({
 
       if (!assistantContent) {
         throw new Error('No response received from API');
-      }
-
-      if (!session) {
-        incrementGuestMessages();
       }
 
       mutate(unstable_serialize(getChatHistoryPaginationKey));
@@ -455,28 +433,11 @@ export function Chat({
             </div>
           )}
 
-          {!session && showGuestLimit && (
-            <div className="w-full max-w-4xl mx-auto px-3 md:px-6 pb-3 md:pb-4">
-              <div className="bg-teal-500/10 border border-teal-500/50 rounded-xl p-6 text-center">
-                <h3 className="text-white font-semibold text-lg mb-2">Free Message Limit Reached</h3>
-                <p className="text-gray-300 mb-4">
-                  You've used your free message. Please log in to continue chatting and unlock unlimited messages.
-                </p>
-                <button
-                  onClick={() => router.push('/auth/login')}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                >
-                  Log In to Continue
-                </button>
-              </div>
-            </div>
-          )}
-
           <form
             className="flex mx-auto px-3 md:px-6 pb-3 md:pb-6 pt-3 md:pt-6 gap-2 w-full max-w-4xl"
             onSubmit={handleSubmit}
           >
-            {!isReadonly && (!showGuestLimit || session) && (
+            {!isReadonly && (
               <MultimodalInput
                 chatId={id}
                 input={input}
