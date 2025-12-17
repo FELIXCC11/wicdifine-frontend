@@ -21,7 +21,7 @@ function PureChatHeader({
   isReadonly: boolean;
   applicationId?: string;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -38,16 +38,9 @@ function PureChatHeader({
 
           {/* Right side - Login/Deploy buttons */}
           <div className="flex items-center gap-2 md:gap-3">
-            {!session ? (
-              <>
-                {/* Login button */}
-                <Link href="/auth/login">
-                  <button className="px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium text-gray-300 hover:text-white transition-colors">
-                    Login
-                  </button>
-                </Link>
-              </>
-            ) : (
+            {status === 'loading' ? (
+              <div className="w-16 h-8"></div>
+            ) : status === 'authenticated' && session?.user ? (
               <>
                 {/* User menu when logged in */}
                 <Link href="/settings/security">
@@ -61,6 +54,15 @@ function PureChatHeader({
                 >
                   Logout
                 </button>
+              </>
+            ) : (
+              <>
+                {/* Login button */}
+                <Link href="/auth/login">
+                  <button className="px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                    Login
+                  </button>
+                </Link>
               </>
             )}
 
